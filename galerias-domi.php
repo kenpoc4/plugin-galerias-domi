@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name:       Galerias Domi
- * Plugin URI:        https://github.com/kenpoc4/
+ * Plugin Name:       Galerias DOMI
+ * Plugin URI:        https://github.com/kenpoc4/plugin-galerias-domi
  * Description:       Plugin para la creación profesional de galerías y carruseles.
  * Version:           1.0.0
  * Requires at least: 6.0
@@ -28,6 +28,29 @@ define( 'GALERIAS_DOMI_PLUGIN_FILE', __FILE__ );
 define( 'GALERIAS_DOMI_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GALERIAS_DOMI_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GALERIAS_DOMI_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+
+// Autoloader PSR-4 para las clases del plugin.
+spl_autoload_register(
+	function ( string $class ): void {
+		$prefix   = 'GaleriasDomi\\';
+		$base_dir = GALERIAS_DOMI_PLUGIN_DIR . 'includes/';
+
+		if ( 0 !== strpos( $class, $prefix ) ) {
+			return;
+		}
+
+		$relative  = str_replace( $prefix, '', $class );
+		$parts     = explode( '\\', $relative );
+		$classname = array_pop( $parts );
+		$subdir    = implode( '/', $parts );
+		$file      = $base_dir . ( $subdir ? $subdir . '/' : '' )
+					. 'class-' . strtolower( str_replace( '_', '-', $classname ) ) . '.php';
+
+		if ( file_exists( $file ) ) {
+			require_once $file;
+		}
+	}
+);
 
 /**
  * Clase principal del plugin.
@@ -74,6 +97,19 @@ final class Galerias_Domi {
 	private function define_hooks(): void {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'init', array( $this, 'init' ) );
+
+		if ( is_admin() ) {
+			$this->load_admin();
+		}
+	}
+
+	/**
+	 * Inicializa los módulos de administración.
+	 *
+	 * @since 1.0.0
+	 */
+	private function load_admin(): void {
+		( new \GaleriasDomi\Admin\Admin_Menu() )->register();
 	}
 
 	/**
@@ -95,8 +131,9 @@ final class Galerias_Domi {
 	 * @since 1.0.0
 	 */
 	public function init(): void {
-		// Inicialización de módulos futuros (CPTs, shortcodes, bloques, etc.).
+		( new \GaleriasDomi\Post_Types\Gallery_Post_Type() )->register();
 	}
+
 }
 
 /**
