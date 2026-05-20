@@ -1,0 +1,26 @@
+/* =====================================================
+   Galerias DOMI — Global Admin Styles
+   Aplica en todas las páginas del plugin.
+   ===================================================== */
+
+/* Alcance: body classes que WordPress asigna a nuestras páginas */
+body.toplevel_page_galerias-domi,
+body.admin_page_galerias-domi-new {
+
+	/* Títulos y encabezados */
+	h1, h2, h3, h4, h5, h6,
+	.wp-heading-inline {
+		font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+	}
+
+	/* Todo el contenido dentro de .wrap */
+	.wrap {
+		font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+	}
+
+	/* Botones y controles propios del plugin */
+	.gd-tab-btn,
+	.gd-card__title {
+		font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+	}
+}

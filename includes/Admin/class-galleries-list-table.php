@@ -123,10 +123,11 @@ class Galleries_List_Table extends \WP_List_Table {
 	protected function column_title( \WP_Post $item ): string {
 		$edit_url = add_query_arg(
 			array(
-				'post'   => $item->ID,
+				'page'   => Admin_Menu::MENU_SLUG,
 				'action' => 'edit',
+				'id'     => $item->ID,
 			),
-			admin_url( 'post.php' )
+			admin_url( 'admin.php' )
 		);
 
 		$title = ! empty( $item->post_title )

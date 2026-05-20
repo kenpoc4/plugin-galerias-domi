@@ -38,9 +38,70 @@ class Admin_Menu {
 	 */
 	public function register(): void {
 		add_action( 'admin_menu', array( $this, 'add_menu' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 
 		$new_gallery = new Admin_New_Gallery();
 		$new_gallery->register();
+	}
+
+	/**
+	 * Hooks de páginas que pertenecen al plugin.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
+	private const PLUGIN_HOOKS = array(
+		'toplevel_page_galerias-domi',
+		'admin_page_galerias-domi-new',
+	);
+
+	/**
+	 * Encola los assets necesarios según la página y acción actuales.
+	 *
+	 * @since 1.0.0
+	 * @param string $hook Sufijo del hook de la página actual.
+	 */
+	public function enqueue_assets( string $hook ): void {
+		// Fuera de las páginas del plugin, no hacer nada.
+		if ( ! in_array( $hook, self::PLUGIN_HOOKS, true ) ) {
+			return;
+		}
+
+		// ── Assets globales: todas las páginas del plugin ──────────────
+		wp_enqueue_style(
+			'gd-poppins',
+			'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap',
+			array(),
+			null // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+		);
+
+		wp_enqueue_style(
+			'gd-admin-global',
+			GALERIAS_DOMI_PLUGIN_URL . 'assets/css/admin-global.css',
+			array( 'gd-poppins' ),
+			GALERIAS_DOMI_VERSION
+		);
+
+		// ── Assets de la página de edición ─────────────────────────────
+		if ( 'toplevel_page_' . self::MENU_SLUG === $hook ) {
+			$action = isset( $_GET['action'] ) ? sanitize_key( $_GET['action'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+			if ( 'edit' === $action ) {
+				wp_enqueue_style(
+					'gd-admin-edit',
+					GALERIAS_DOMI_PLUGIN_URL . 'assets/css/admin-edit.css',
+					array( 'gd-admin-global' ),
+					GALERIAS_DOMI_VERSION
+				);
+
+				wp_enqueue_script(
+					'gd-admin-edit',
+					GALERIAS_DOMI_PLUGIN_URL . 'assets/js/admin-edit.js',
+					array(),
+					GALERIAS_DOMI_VERSION,
+					true
+				);
+			}
+		}
 	}
 
 	/**

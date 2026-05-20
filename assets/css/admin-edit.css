@@ -1,0 +1,709 @@
+/* =====================================================
+   Galerias DOMI — Edit Page
+   ===================================================== */
+
+:root {
+	--gd-primary:   #1ED760;
+	--gd-secondary: #ff7439;
+	--gd-contrast:  #4100f4;
+
+	--gd-primary-dark:   #17b34e;
+	--gd-primary-light:  #e8fdf0;
+
+	--gd-bg:        #f6f7f7;
+	--gd-card-bg:   #ffffff;
+	--gd-border:    #dcdcde;
+	--gd-text:      #1d2327;
+	--gd-muted:     #646970;
+
+	--gd-radius:    8px;
+	--gd-shadow:    0 1px 4px rgba(0, 0, 0, .08);
+}
+
+/* ─── Layout ─────────────────────────────────────── */
+
+.gd-edit-layout {
+	display: flex;
+	gap: 24px;
+	margin-top: 24px;
+	align-items: flex-start;
+}
+
+.gd-option-part {
+	flex: 0 0 40%;
+	max-width: 40%;
+}
+
+.gd-preview-part {
+	flex: 1;
+	min-height: 400px;
+	background: var(--gd-card-bg);
+	border: 1px dashed var(--gd-border);
+	border-radius: var(--gd-radius);
+}
+
+/* ─── Card ───────────────────────────────────────── */
+
+.gd-card {
+	background: var(--gd-card-bg);
+	border: 1px solid var(--gd-border);
+	border-radius: var(--gd-radius);
+	box-shadow: var(--gd-shadow);
+	overflow: hidden;
+}
+
+.gd-card__header {
+	padding: 14px 20px;
+	border-bottom: 1px solid var(--gd-border);
+	background: #fafafa;
+}
+
+.gd-card__title {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--gd-muted);
+	text-transform: uppercase;
+	letter-spacing: .08em;
+}
+
+/* ─── Acordeón: botones ──────────────────────────── */
+
+.gd-tab-btn {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	text-align: left;
+	padding: 12px 18px;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--gd-muted);
+	background: #fafafa;
+	border: none;
+	border-left: 3px solid transparent;
+	border-bottom: 1px solid var(--gd-border);
+	cursor: pointer;
+	transition: color .15s ease, border-color .15s ease, background .15s ease;
+	line-height: 1.4;
+}
+
+.gd-tab-btn:hover {
+	color: var(--gd-text);
+	background: #f0f0f1;
+}
+
+.gd-tab-btn:focus-visible {
+	outline: 2px solid var(--gd-contrast);
+	outline-offset: -2px;
+}
+
+.gd-tab-btn.is-active {
+	color: var(--gd-primary-dark);
+	border-left-color: var(--gd-primary);
+	background: var(--gd-primary-light);
+	font-weight: 600;
+}
+
+/* Chevron animado */
+.gd-tab-btn::after {
+	content: '';
+	flex-shrink: 0;
+	width: 7px;
+	height: 7px;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(45deg);
+	transition: transform .2s ease;
+	margin-left: 10px;
+}
+
+.gd-tab-btn.is-active::after {
+	transform: rotate(-135deg);
+}
+
+/* ─── Campos (fields) ───────────────────────────── */
+
+.gd-field {
+	margin-bottom: 20px;
+}
+
+.gd-field:last-child {
+	margin-bottom: 0;
+}
+
+.gd-field__label {
+	display: block;
+	margin-bottom: 10px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--gd-text);
+	text-transform: uppercase;
+	letter-spacing: .06em;
+}
+
+/* ─── Column picker ──────────────────────────────── */
+
+.gd-columns-picker {
+	display: flex;
+	gap: 10px;
+}
+
+.gd-col-option {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+}
+
+/* Radio nativo: accesible pero invisible */
+.gd-col-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+/* Cuadrado con barras */
+.gd-col-option__preview {
+	display: flex;
+	align-items: stretch;
+	gap: 3px;
+	width: 62px;
+	height: 50px;
+	padding: 8px 7px;
+	background: var(--gd-bg);
+	border: 2px solid var(--gd-border);
+	border-radius: 6px;
+	transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+/* Barras que representan las columnas */
+.gd-col-option__preview span {
+	flex: 1;
+	background: #c3c4c7;
+	border-radius: 2px;
+	transition: background .15s ease;
+}
+
+/* Etiqueta numérica */
+.gd-col-option__num {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--gd-muted);
+	transition: color .15s ease;
+}
+
+/* Estado hover */
+.gd-col-option:hover .gd-col-option__preview {
+	border-color: var(--gd-primary);
+	background: var(--gd-primary-light);
+}
+
+.gd-col-option:hover .gd-col-option__preview span {
+	background: var(--gd-primary);
+	opacity: .5;
+}
+
+/* Estado seleccionado — via CSS sibling (input:checked ~ preview) */
+.gd-col-option input[type="radio"]:checked ~ .gd-col-option__preview {
+	border-color: var(--gd-primary);
+	background: var(--gd-primary-light);
+	box-shadow: 0 0 0 3px rgba(30, 215, 96, .2);
+}
+
+.gd-col-option input[type="radio"]:checked ~ .gd-col-option__preview span {
+	background: var(--gd-primary);
+}
+
+.gd-col-option input[type="radio"]:checked ~ .gd-col-option__num {
+	color: var(--gd-primary-dark);
+}
+
+/* Foco accesible por teclado */
+.gd-col-option input[type="radio"]:focus-visible ~ .gd-col-option__preview {
+	outline: 2px solid var(--gd-contrast);
+	outline-offset: 2px;
+}
+
+/* ─── Opción personalizada ───────────────────────── */
+
+.gd-col-option--custom .gd-col-option__preview {
+	justify-content: center;
+	align-items: center;
+	border-style: dashed;
+}
+
+/* Input numérico dentro del cuadrado */
+.gd-col-custom-input {
+	width: 36px;
+	padding: 0;
+	font-size: 18px;
+	font-weight: 700;
+	font-family: inherit;
+	text-align: center;
+	color: var(--gd-muted);
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	outline: none;
+	cursor: text;
+	/* Ocultar flechas nativas del browser */
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+
+.gd-col-custom-input::-webkit-inner-spin-button,
+.gd-col-custom-input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+/* Cuando la opción custom está seleccionada, el número hereda el color primario */
+.gd-col-option--custom input[type="radio"]:checked ~ .gd-col-option__preview .gd-col-custom-input {
+	color: var(--gd-primary-dark);
+}
+
+/* ─── Campo fila (label + control inline) ────────── */
+
+.gd-field--row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.gd-field__info {
+	flex: 1;
+	min-width: 0;
+}
+
+.gd-field__label--inline {
+	font-size: 13px;
+	font-weight: 500;
+	text-transform: none;
+	letter-spacing: normal;
+	color: var(--gd-text);
+}
+
+.gd-field__desc {
+	display: block;
+	margin-top: 2px;
+	font-size: 12px;
+	color: var(--gd-muted);
+	line-height: 1.5;
+}
+
+/* ─── Campo deshabilitado ────────────────────────── */
+
+.gd-field {
+	transition: opacity .2s ease;
+}
+
+.gd-field.is-disabled {
+	opacity: 0.45;
+	pointer-events: none;
+	user-select: none;
+}
+
+/* ─── Toggle switch ──────────────────────────────── */
+
+.gd-toggle {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	flex-shrink: 0;
+	cursor: pointer;
+}
+
+.gd-toggle input[type="checkbox"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+.gd-toggle__track {
+	position: relative;
+	display: block;
+	width: 42px;
+	height: 24px;
+	background: #c3c4c7;
+	border-radius: 12px;
+	transition: background .2s ease;
+}
+
+.gd-toggle__thumb {
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 18px;
+	height: 18px;
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+	transition: transform .22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Encendido */
+.gd-toggle input:checked ~ .gd-toggle__track {
+	background: var(--gd-primary);
+}
+
+.gd-toggle input:checked ~ .gd-toggle__track .gd-toggle__thumb {
+	transform: translateX(18px);
+}
+
+/* Foco teclado */
+.gd-toggle input:focus-visible ~ .gd-toggle__track {
+	outline: 2px solid var(--gd-contrast);
+	outline-offset: 2px;
+}
+
+/* ─── Select personalizado ───────────────────────── */
+
+.gd-select-wrap {
+	position: relative;
+	display: block;
+	margin-top: 8px;
+}
+
+.gd-select-wrap select {
+	width: 100%;
+	padding: 7px 32px 7px 10px;
+	font-family: inherit;
+	font-size: 13px;
+	color: var(--gd-text);
+	background: var(--gd-card-bg);
+	border: 1px solid var(--gd-border);
+	border-radius: 5px;
+	appearance: none;
+	cursor: pointer;
+	transition: border-color .15s ease, box-shadow .15s ease;
+	line-height: 1.5;
+}
+
+.gd-select-wrap select:hover {
+	border-color: #8c8f94;
+}
+
+.gd-select-wrap select:focus {
+	border-color: var(--gd-primary);
+	box-shadow: 0 0 0 2px rgba(30, 215, 96, .2);
+	outline: none;
+}
+
+.gd-field.is-disabled .gd-select-wrap select {
+	cursor: not-allowed;
+}
+
+/* Flecha del select */
+.gd-select-wrap::after {
+	content: '';
+	position: absolute;
+	right: 11px;
+	top: 50%;
+	width: 6px;
+	height: 6px;
+	border-right: 2px solid var(--gd-muted);
+	border-bottom: 2px solid var(--gd-muted);
+	transform: translateY(-65%) rotate(45deg);
+	pointer-events: none;
+}
+
+/* ─── Hover effect picker ────────────────────────── */
+
+.gd-hover-picker {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.gd-hover-option {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+}
+
+.gd-hover-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+/* Cuadrado base */
+.gd-hover-option__preview {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 58px;
+	height: 50px;
+	background: var(--gd-bg);
+	border: 2px solid var(--gd-border);
+	border-radius: 6px;
+	overflow: hidden;
+	transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+/* Mock imagen dentro del cuadrado */
+.gd-hover-preview__img {
+	position: relative;
+	width: 36px;
+	height: 28px;
+	background: linear-gradient( 135deg, #d0d0d0 0%, #b0b2b5 100% );
+	border-radius: 3px;
+	flex-shrink: 0;
+	transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
+}
+
+/* Etiqueta bajo el cuadrado */
+.gd-hover-option__label {
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--gd-muted);
+	transition: color .15s ease;
+	white-space: nowrap;
+}
+
+/* Hover del label */
+.gd-hover-option:hover .gd-hover-option__preview {
+	border-color: var(--gd-primary);
+	background: var(--gd-primary-light);
+}
+
+/* Seleccionado */
+.gd-hover-option input[type="radio"]:checked ~ .gd-hover-option__preview {
+	border-color: var(--gd-primary);
+	background: var(--gd-primary-light);
+	box-shadow: 0 0 0 3px rgba(30, 215, 96, .2);
+}
+
+.gd-hover-option input[type="radio"]:checked ~ .gd-hover-option__label {
+	color: var(--gd-primary-dark);
+	font-weight: 600;
+}
+
+/* Foco teclado */
+.gd-hover-option input[type="radio"]:focus-visible ~ .gd-hover-option__preview {
+	outline: 2px solid var(--gd-contrast);
+	outline-offset: 2px;
+}
+
+/* ── Previews individuales ───────────────────────── */
+
+/* Sombra */
+.gd-hover-preview--shadow .gd-hover-preview__img {
+	box-shadow: 3px 4px 7px rgba(0, 0, 0, .45);
+}
+
+/* Borde */
+.gd-hover-preview--border .gd-hover-preview__img {
+	border: 2px solid #50575e;
+	width: 32px;
+	height: 24px;
+}
+
+/* Zoom-in: imagen escalada recortada por el overflow:hidden del padre */
+.gd-hover-preview--zoomin .gd-hover-preview__img {
+	width: 100%;
+	height: 100%;
+	border-radius: 0;
+	transform: scale(1.35);
+}
+
+/* Zoom-out: imagen más pequeña que su entorno */
+.gd-hover-preview--zoomout .gd-hover-preview__img {
+	transform: scale(0.6);
+	box-shadow: 0 0 0 1px var(--gd-border);
+}
+
+/* Blur + overlay "Ver" */
+.gd-hover-preview--blur .gd-hover-preview__img {
+	filter: blur(2px);
+}
+
+.gd-hover-preview__overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 7px;
+	font-weight: 700;
+	letter-spacing: .04em;
+	color: #fff;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+	pointer-events: none;
+}
+
+/* ─── Filter repeater ────────────────────────────── */
+
+.gd-filters-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 10px;
+}
+
+/* Fila base */
+.gd-filter-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* Fila "Todos" fija */
+.gd-filter-row--default {
+	padding: 7px 10px;
+	background: var(--gd-bg);
+	border: 1px solid var(--gd-border);
+	border-radius: 5px;
+}
+
+.gd-filter-row__fixed-name {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--gd-text);
+}
+
+.gd-filter-row__fixed-id {
+	font-family: monospace;
+	font-size: 11px;
+	color: var(--gd-muted);
+	background: #ededef;
+	padding: 1px 6px;
+	border-radius: 3px;
+}
+
+.gd-filter-row__badge {
+	margin-left: auto;
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--gd-muted);
+	text-transform: uppercase;
+	letter-spacing: .06em;
+}
+
+/* Campos de fila dinámica */
+.gd-filter-row__fields {
+	display: flex;
+	gap: 8px;
+	flex: 1;
+	min-width: 0;
+}
+
+.gd-filter-name,
+.gd-filter-id {
+	padding: 6px 10px;
+	font-family: inherit;
+	font-size: 13px;
+	color: var(--gd-text);
+	background: var(--gd-card-bg);
+	border: 1px solid var(--gd-border);
+	border-radius: 5px;
+	transition: border-color .15s ease, box-shadow .15s ease;
+	line-height: 1.5;
+	min-width: 0;
+}
+
+.gd-filter-name {
+	flex: 3;
+}
+
+.gd-filter-id {
+	flex: 2;
+	font-family: monospace;
+	font-size: 12px;
+	color: var(--gd-muted);
+}
+
+.gd-filter-name:focus,
+.gd-filter-id:focus {
+	border-color: var(--gd-primary);
+	box-shadow: 0 0 0 2px rgba(30, 215, 96, .2);
+	outline: none;
+}
+
+/* Botón eliminar */
+.gd-filter-remove {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	font-size: 18px;
+	line-height: 1;
+	color: var(--gd-muted);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: 5px;
+	cursor: pointer;
+	padding: 0;
+	transition: color .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.gd-filter-remove:hover {
+	color: #cc1818;
+	background: #fbeaea;
+	border-color: #f0c4c4;
+}
+
+/* Botón agregar */
+.gd-filter-add {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 6px 14px;
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--gd-primary-dark);
+	background: var(--gd-primary-light);
+	border: 1px solid var(--gd-primary);
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background .15s ease, box-shadow .15s ease;
+}
+
+.gd-filter-add:hover {
+	background: #d4f7e3;
+	box-shadow: 0 0 0 2px rgba(30, 215, 96, .15);
+}
+
+/* Placeholder para tabs sin contenido aún */
+.gd-tab-placeholder {
+	margin: 0;
+	color: var(--gd-muted);
+	font-style: italic;
+	font-size: 13px;
+}
+
+/* ─── Tab panels ─────────────────────────────────── */
+
+/*
+ * La animación de apertura/cierre se maneja íntegramente desde JS
+ * (slideDown / slideUp) midiendo el scrollHeight real del panel.
+ * El wrapper .gd-tab-panel solo controla el overflow para que el
+ * recorte de altura funcione; el padding vive en __body para no
+ * interferir con la medición de altura.
+ */
+.gd-tab-panel {
+	overflow: hidden;
+}
+
+.gd-tab-panel__body {
+	padding: 16px 18px;
+	border-bottom: 1px solid var(--gd-border);
+	color: var(--gd-text);
+	font-size: 13px;
+	line-height: 1.6;
+}

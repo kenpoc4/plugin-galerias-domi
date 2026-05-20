@@ -33,6 +33,14 @@ class Admin_Page {
 			wp_die( esc_html__( 'No tienes permiso para acceder a esta página.', 'galerias-domi' ) );
 		}
 
+		// Delegar a la página de edición si corresponde.
+		$action = isset( $_GET['action'] ) ? sanitize_key( $_GET['action'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		if ( 'edit' === $action ) {
+			$id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
+			( new Admin_Edit_Gallery( $id ) )->render();
+			return;
+		}
+
 		$add_new_url = admin_url( 'admin.php?page=' . Admin_Menu::MENU_SLUG . '-new' );
 
 		$table = new Galleries_List_Table();
