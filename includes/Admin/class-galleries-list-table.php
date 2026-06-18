@@ -154,9 +154,17 @@ class Galleries_List_Table extends \WP_List_Table {
 	 * @return string
 	 */
 	protected function column_shortcode( \WP_Post $item ): string {
+		$is_published = (bool) get_post_meta( $item->ID, '_gd_published', true );
+
+		if ( ! $is_published ) {
+			return '<span class="gd-unpublished-badge">'
+				. esc_html__( 'Sin publicar', 'galerias-domi' )
+				. '</span>';
+		}
+
 		$shortcode = sprintf( '[galeria_domi id="%d"]', $item->ID );
 		return sprintf(
-			'<code style="user-select:all;">%s</code>',
+			'<code class="gd-shortcode">%s</code>',
 			esc_html( $shortcode )
 		);
 	}

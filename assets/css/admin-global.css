@@ -24,3 +24,21 @@ body.admin_page_galerias-domi-new {
 		font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
 	}
 }
+
+/* ─── Tabla de galerías ──────────────────────────────── */
+
+.gd-unpublished-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: 11px;
+	font-weight: 600;
+	color: #646970;
+	background: #f0f0f1;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	letter-spacing: .02em;
+}
+
+.gd-shortcode {
+	user-select: all;
+}

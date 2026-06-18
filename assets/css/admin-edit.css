@@ -9,6 +9,8 @@
 
 	--gd-primary-dark:   #17b34e;
 	--gd-primary-light:  #e8fdf0;
+	--gd-contrast-dark:  #3200c2;
+	--gd-contrast-light: #ece8fe;
 
 	--gd-bg:        #f6f7f7;
 	--gd-card-bg:   #ffffff;
@@ -19,6 +21,9 @@
 	--gd-radius:    8px;
 	--gd-shadow:    0 1px 4px rgba(0, 0, 0, .08);
 }
+
+/* Scope: todas las reglas del plugin ganan sobre los estilos de WordPress admin */
+body.toplevel_page_galerias-domi {
 
 /* ─── Layout ─────────────────────────────────────── */
 
@@ -36,10 +41,7 @@
 
 .gd-preview-part {
 	flex: 1;
-	min-height: 400px;
-	background: var(--gd-card-bg);
-	border: 1px dashed var(--gd-border);
-	border-radius: var(--gd-radius);
+	min-width: 0;
 }
 
 /* ─── Card ───────────────────────────────────────── */
@@ -56,6 +58,76 @@
 	padding: 14px 20px;
 	border-bottom: 1px solid var(--gd-border);
 	background: #fafafa;
+}
+
+.gd-card__footer {
+	padding: 14px 20px;
+	border-top: 1px solid var(--gd-border);
+	background: #fafafa;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.gd-btn-save {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 48px;
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 600;
+	color: #fff;
+	background: var(--gd-primary-dark);
+	border: 1px solid var(--gd-primary-dark);
+	border-radius: var(--gd-radius);
+	cursor: pointer;
+	transition: background .15s ease, box-shadow .15s ease, transform .1s ease;
+	letter-spacing: .02em;
+}
+
+.gd-btn-save:hover {
+	background: #149b44;
+	box-shadow: 0 2px 8px rgba(23, 179, 78, .35);
+}
+
+.gd-btn-save:active {
+	transform: translateY(1px);
+	box-shadow: none;
+}
+
+/* ─── Botón Publicar galería (header) ───────────────── */
+
+.gd-publish-form {
+	float: right;
+	margin-top: 3px;
+}
+
+.gd-btn-publish {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 20px;
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	color: #fff;
+	background: var(--gd-contrast);
+	border: 1px solid var(--gd-contrast);
+	border-radius: var(--gd-radius);
+	cursor: pointer;
+	transition: background .15s ease, box-shadow .15s ease, transform .1s ease;
+	letter-spacing: .02em;
+}
+
+.gd-btn-publish:hover {
+	background: var(--gd-contrast-dark);
+	box-shadow: 0 2px 8px rgba(65, 0, 244, .35);
+}
+
+.gd-btn-publish:active {
+	transform: translateY(1px);
+	box-shadow: none;
 }
 
 .gd-card__title {
@@ -553,7 +625,6 @@
 	margin-bottom: 10px;
 }
 
-/* Fila base */
 .gd-filter-row {
 	display: flex;
 	align-items: center;
@@ -568,21 +639,6 @@
 	border-radius: 5px;
 }
 
-.gd-filter-row__fixed-name {
-	font-size: 13px;
-	font-weight: 600;
-	color: var(--gd-text);
-}
-
-.gd-filter-row__fixed-id {
-	font-family: monospace;
-	font-size: 11px;
-	color: var(--gd-muted);
-	background: #ededef;
-	padding: 1px 6px;
-	border-radius: 3px;
-}
-
 .gd-filter-row__badge {
 	margin-left: auto;
 	font-size: 10px;
@@ -592,14 +648,62 @@
 	letter-spacing: .06em;
 }
 
-/* Campos de fila dinámica */
+/* Contenedores de modo edición / vista */
+.gd-filter-row__edit-mode,
+.gd-filter-row__view-mode {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* Vista confirmada: aspecto de píldora */
+.gd-filter-row__view-mode {
+	padding: 7px 10px;
+	background: var(--gd-bg);
+	border: 1px solid var(--gd-border);
+	border-radius: 5px;
+}
+
+/* Visibilidad según estado (view-actions vive dentro de view-mode, no necesita regla propia) */
+.gd-filter-row[data-state="editing"]   .gd-filter-row__edit-mode { display: flex; }
+.gd-filter-row[data-state="editing"]   .gd-filter-row__view-mode { display: none;  }
+.gd-filter-row[data-state="confirmed"] .gd-filter-row__edit-mode { display: none;  }
+.gd-filter-row[data-state="confirmed"] .gd-filter-row__view-mode { display: flex;  }
+
+/* Campos */
 .gd-filter-row__fields {
 	display: flex;
+	align-items: center;
 	gap: 8px;
 	flex: 1;
 	min-width: 0;
 }
 
+.gd-filter-row__fixed-name {
+	flex: 1;
+	min-width: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--gd-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.gd-filter-row__fixed-id {
+	flex: 1;
+	font-family: monospace;
+	font-size: 11px;
+	color: var(--gd-muted);
+	background: #ededef;
+	padding: 2px 6px;
+	border-radius: 3px;
+	text-align: center;
+}
+
+/* Inputs */
 .gd-filter-name,
 .gd-filter-id {
 	padding: 6px 10px;
@@ -614,15 +718,14 @@
 	min-width: 0;
 }
 
-.gd-filter-name {
-	flex: 3;
-}
+.gd-filter-name { flex: 3; }
 
 .gd-filter-id {
 	flex: 2;
 	font-family: monospace;
 	font-size: 12px;
 	color: var(--gd-muted);
+	text-align: center;
 }
 
 .gd-filter-name:focus,
@@ -632,36 +735,116 @@
 	outline: none;
 }
 
-/* Botón eliminar */
-.gd-filter-remove {
+/* Estado de error en validación */
+.gd-filter-name.has-error,
+.gd-filter-id.has-error {
+	border-color: #cc1818;
+	box-shadow: 0 0 0 2px rgba(204, 24, 24, .15);
+}
+
+/* Handle de arrastre */
+.gd-filter-handle {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	min-height: 28px;
+	font-size: 15px;
+	color: #c3c4c7;
+	background: transparent;
+	border: none;
+	cursor: grab;
+	padding: 0;
+	user-select: none;
+	transition: color .15s ease;
+}
+
+.gd-filter-handle:hover { color: var(--gd-muted); }
+.gd-filter-handle:active { cursor: grabbing; }
+
+/* Fila siendo arrastrada */
+.gd-filter-row.is-dragging {
+	opacity: .35;
+}
+
+/* Acciones de la vista confirmada */
+.gd-filter-row__view-actions {
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
-	font-size: 18px;
-	line-height: 1;
-	color: var(--gd-muted);
-	background: transparent;
-	border: 1px solid transparent;
-	border-radius: 5px;
-	cursor: pointer;
-	padding: 0;
-	transition: color .15s ease, background .15s ease, border-color .15s ease;
+	gap: 6px;
 }
 
-.gd-filter-remove:hover {
+/* Botones Editar y Eliminar */
+.gd-filter-edit,
+.gd-filter-delete {
+	flex-shrink: 0;
+	padding: 3px 10px;
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 600;
+	background: transparent;
+	border: 1px solid var(--gd-border);
+	border-radius: 4px;
+	cursor: pointer;
+	transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.gd-filter-edit {
+	color: var(--gd-muted);
+}
+
+.gd-filter-edit:hover {
+	color: var(--gd-text);
+	border-color: #8c8f94;
+	background: #f0f0f1;
+}
+
+.gd-filter-delete {
 	color: #cc1818;
-	background: #fbeaea;
 	border-color: #f0c4c4;
 }
 
-/* Botón agregar */
+.gd-filter-delete:hover {
+	background: #fbeaea;
+	border-color: #cc1818;
+}
+
+/* Checkbox "Mostrar Todos" debajo del título "Filtros disponibles" */
+.gd-todos-option {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 10px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--gd-muted);
+	cursor: pointer;
+	user-select: none;
+}
+
+.gd-todos-option input[type="checkbox"] {
+	width: 14px;
+	height: 14px;
+	accent-color: var(--gd-primary);
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+/* Fila "Todos" desactivada */
+.gd-filter-row--default.is-todos-hidden .gd-filter-row__fixed-name,
+.gd-filter-row--default.is-todos-hidden .gd-filter-row__fixed-id {
+	opacity: .45;
+	text-decoration: line-through;
+}
+
+/* Botón principal Agregar / Generar */
 .gd-filter-add {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
+	margin-top: 4px;
 	padding: 6px 14px;
 	font-family: inherit;
 	font-size: 12px;
@@ -671,12 +854,25 @@
 	border: 1px solid var(--gd-primary);
 	border-radius: 5px;
 	cursor: pointer;
-	transition: background .15s ease, box-shadow .15s ease;
+	transition: background .15s ease, color .15s ease,
+	            border-color .15s ease, box-shadow .15s ease;
 }
 
 .gd-filter-add:hover {
 	background: #d4f7e3;
 	box-shadow: 0 0 0 2px rgba(30, 215, 96, .15);
+}
+
+/* Modo "Generar filtro": botón sólido */
+.gd-filter-add[data-mode="confirm"] {
+	color: #fff;
+	background: var(--gd-primary-dark);
+	border-color: var(--gd-primary-dark);
+}
+
+.gd-filter-add[data-mode="confirm"]:hover {
+	background: #149b44;
+	box-shadow: 0 0 0 2px rgba(23, 179, 78, .25);
 }
 
 /* Placeholder para tabs sin contenido aún */
@@ -707,3 +903,479 @@
 	font-size: 13px;
 	line-height: 1.6;
 }
+
+/* ─── Utilidad ───────────────────────────────────────── */
+
+.gd-hidden {
+	display: none !important;
+}
+
+/* ─── Panel de imágenes (columna derecha) ────────────── */
+
+.gd-images-card {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.gd-images-card__body {
+	flex: 1;
+	padding: 16px;
+}
+
+/* Botón Agregar imágenes */
+.gd-btn-add-images {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 7px 16px;
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--gd-primary-dark);
+	background: var(--gd-primary-light);
+	border: 1px solid var(--gd-primary);
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background .15s ease, box-shadow .15s ease;
+	flex-shrink: 0;
+}
+
+.gd-btn-add-images:hover {
+	background: #d4f7e3;
+	box-shadow: 0 0 0 2px rgba(30, 215, 96, .15);
+}
+
+/* Footer: contador a la izquierda, botón a la derecha */
+.gd-images-card__footer {
+	justify-content: space-between !important;
+}
+
+.gd-images-count {
+	font-size: 12px;
+	color: var(--gd-muted);
+}
+
+/* ─── Drop zone (estado vacío) ───────────────────────── */
+
+.gd-dropzone {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 240px;
+	padding: 40px 24px;
+	border: 2px dashed var(--gd-border);
+	border-radius: var(--gd-radius);
+	text-align: center;
+	cursor: pointer;
+	color: var(--gd-muted);
+	transition: border-color .2s ease, background .2s ease, color .2s ease;
+}
+
+.gd-dropzone:hover,
+.gd-dropzone:focus-visible {
+	border-color: var(--gd-primary);
+	background: var(--gd-primary-light);
+	color: var(--gd-primary-dark);
+	outline: none;
+}
+
+.gd-dropzone__icon {
+	display: block;
+	margin-bottom: 14px;
+	opacity: .35;
+	transition: opacity .2s ease;
+}
+
+.gd-dropzone:hover .gd-dropzone__icon,
+.gd-dropzone:focus-visible .gd-dropzone__icon {
+	opacity: .7;
+}
+
+.gd-dropzone__title {
+	margin: 0 0 6px;
+	font-size: 13px;
+	font-weight: 600;
+	color: inherit;
+}
+
+.gd-dropzone__desc {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.6;
+	color: inherit;
+}
+
+/* ─── Lista de imágenes ──────────────────────────────── */
+
+.gd-images-list {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+/* ─── Fila de imagen ─────────────────────────────────── */
+
+.gd-image-row {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding: 5px 8px 5px 4px;
+	background: var(--gd-card-bg);
+	border: 1px solid var(--gd-border);
+	border-radius: 6px;
+	transition: border-color .15s ease, background .15s ease;
+}
+
+.gd-image-row:hover {
+	background: var(--gd-bg);
+	border-color: #c3c4c7;
+}
+
+.gd-image-row.is-dragging {
+	opacity: .4;
+	border-color: var(--gd-primary);
+	box-shadow: 0 0 0 2px rgba(30, 215, 96, .18);
+}
+
+/* Handle — siempre visible, más oscuro al hover */
+.gd-image-row .gd-filter-handle {
+	color: #c3c4c7;
+	transition: color .15s ease;
+}
+
+.gd-image-row:hover .gd-filter-handle {
+	color: #8c8f94;
+}
+
+/* Miniatura */
+.gd-image-row__thumb {
+	flex-shrink: 0;
+	width: 32px;
+	height: 32px;
+	border-radius: 4px;
+	overflow: hidden;
+	background: var(--gd-bg);
+	border: 1px solid var(--gd-border);
+}
+
+.gd-image-row__thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+/* Info: nombre + filtro en la misma línea horizontal */
+.gd-image-row__info {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.gd-image-row__name {
+	flex: 1;
+	min-width: 0;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--gd-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	line-height: 1;
+}
+
+/* Selector de filtro — pequeño, badge-like */
+.gd-image-row__filter {
+	flex-shrink: 0;
+}
+
+.gd-image-filter-select {
+	min-height: 25px;
+	width: 150px;
+	padding: 0 18px 0 7px;
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--gd-muted);
+	background-color: var(--gd-bg);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='3' viewBox='0 0 5 3'%3E%3Cpath d='M1 1l1.5 1.5L4 1' stroke='%23646970' stroke-width='1.1' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 6px center;
+	border: 1px solid var(--gd-border);
+	border-radius: 4px;
+	appearance: none;
+	cursor: pointer;
+	transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+
+.gd-image-filter-select:hover {
+	background-color: var(--gd-primary-light);
+	border-color: var(--gd-primary);
+	color: var(--gd-primary-dark);
+}
+
+.gd-image-filter-select:focus {
+	background-color: var(--gd-primary-light);
+	border-color: var(--gd-primary);
+	box-shadow: 0 0 0 2px rgba(30, 215, 96, .18);
+	color: var(--gd-primary-dark);
+	outline: none;
+}
+
+/* Botón eliminar — solo visible al hover */
+.gd-image-remove {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1;
+	color: #c3c4c7;
+	background: transparent;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	padding: 0;
+	transition: color .15s ease, background .15s ease;
+}
+
+.gd-image-row:hover .gd-image-remove {
+	color: #8c8f94;
+}
+
+.gd-image-remove:hover {
+	color: #cc1818;
+	background: #fbeaea;
+}
+
+/* ─── Rows picker (paginación) ───────────────────────── */
+
+.gd-rows-picker {
+	display: flex;
+	gap: 8px;
+}
+
+.gd-row-option {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+	cursor: pointer;
+}
+
+.gd-row-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+.gd-row-option__box {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 36px;
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--gd-muted);
+	background: var(--gd-bg);
+	border: 2px solid var(--gd-border);
+	border-radius: 6px;
+	transition: border-color .15s ease, background .15s ease,
+	            color .15s ease, box-shadow .15s ease;
+}
+
+.gd-row-option__label {
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--gd-muted);
+	transition: color .15s ease;
+}
+
+.gd-row-option:hover .gd-row-option__box {
+	border-color: var(--gd-primary);
+	background: var(--gd-primary-light);
+	color: var(--gd-primary-dark);
+}
+
+.gd-row-option input[type="radio"]:checked ~ .gd-row-option__box {
+	border-color: var(--gd-primary);
+	background: var(--gd-primary-light);
+	color: var(--gd-primary-dark);
+	box-shadow: 0 0 0 3px rgba(30, 215, 96, .2);
+}
+
+.gd-row-option input[type="radio"]:checked ~ .gd-row-option__label {
+	color: var(--gd-primary-dark);
+	font-weight: 600;
+}
+
+.gd-row-option input[type="radio"]:focus-visible ~ .gd-row-option__box {
+	outline: 2px solid var(--gd-contrast);
+	outline-offset: 2px;
+}
+
+/* ─── Barra de guardado global ───────────────────────── */
+
+.gd-save-bar {
+	position: fixed;
+	bottom: 0;
+	left: 160px; /* compensa el sidebar de WordPress */
+	right: 0;
+	z-index: 9999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 14px 24px;
+	background: rgba(255, 255, 255, .94);
+	backdrop-filter: blur(8px);
+	border-top: 1px solid var(--gd-border);
+	box-shadow: 0 -4px 16px rgba(0, 0, 0, .08);
+}
+
+/* Evitar que el contenido quede oculto detrás de la barra fija */
+.gd-edit-layout {
+	padding-bottom: 70px;
+}
+
+/* ─── Botón Vista previa ─────────────────────────────── */
+
+.gd-image-preview-btn {
+	flex-shrink: 0;
+	padding: 3px 8px;
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--gd-muted);
+	background: transparent;
+	border: 1px solid var(--gd-border);
+	border-radius: 4px;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.gd-image-preview-btn:hover {
+	color: var(--gd-text);
+	border-color: #8c8f94;
+	background: #f0f0f1;
+}
+
+/* ─── Modal de vista previa ──────────────────────────── */
+
+.gd-modal[hidden] {
+	display: none;
+}
+
+.gd-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity .22s ease;
+}
+
+.gd-modal.is-open {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.gd-modal__overlay {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, .82);
+	cursor: pointer;
+}
+
+.gd-modal__box {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	max-width: min(92vw, 960px);
+	max-height: 90vh;
+	background: var(--gd-card-bg);
+	border-radius: var(--gd-radius);
+	box-shadow: 0 24px 64px rgba(0, 0, 0, .5);
+	overflow: hidden;
+	transform: scale(.96);
+	transition: transform .22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gd-modal.is-open .gd-modal__box {
+	transform: scale(1);
+}
+
+.gd-modal__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 14px;
+	border-bottom: 1px solid var(--gd-border);
+	background: #fafafa;
+	flex-shrink: 0;
+}
+
+.gd-modal__title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--gd-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.gd-modal__close {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	margin-left: 12px;
+	font-size: 13px;
+	color: var(--gd-muted);
+	background: transparent;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: color .15s ease, background .15s ease;
+}
+
+.gd-modal__close:hover {
+	color: var(--gd-text);
+	background: #f0f0f1;
+}
+
+.gd-modal__body {
+	flex: 1;
+	overflow: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	background: #1a1a1a;
+}
+
+.gd-modal__img {
+	max-width: 100%;
+	max-height: calc(90vh - 60px);
+	object-fit: contain;
+	border-radius: 4px;
+	display: block;
+}
+
+} /* end body.toplevel_page_galerias-domi */

@@ -42,6 +42,9 @@ class Admin_Menu {
 
 		$new_gallery = new Admin_New_Gallery();
 		$new_gallery->register();
+
+		Admin_Edit_Gallery::register_save_hook();
+		Admin_Edit_Gallery::register_publish_hook();
 	}
 
 	/**
@@ -86,6 +89,8 @@ class Admin_Menu {
 		if ( 'toplevel_page_' . self::MENU_SLUG === $hook ) {
 			$action = isset( $_GET['action'] ) ? sanitize_key( $_GET['action'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 			if ( 'edit' === $action ) {
+				wp_enqueue_media();
+
 				wp_enqueue_style(
 					'gd-admin-edit',
 					GALERIAS_DOMI_PLUGIN_URL . 'assets/css/admin-edit.css',
@@ -96,7 +101,7 @@ class Admin_Menu {
 				wp_enqueue_script(
 					'gd-admin-edit',
 					GALERIAS_DOMI_PLUGIN_URL . 'assets/js/admin-edit.js',
-					array(),
+					array( 'media-editor' ),
 					GALERIAS_DOMI_VERSION,
 					true
 				);
