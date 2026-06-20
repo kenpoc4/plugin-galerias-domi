@@ -1,0 +1,6 @@
+# ZIP de distribución generado con git archive
+*.zip
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
