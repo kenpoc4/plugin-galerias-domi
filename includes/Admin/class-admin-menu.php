@@ -45,6 +45,7 @@ class Admin_Menu {
 
 		Admin_Edit_Gallery::register_save_hook();
 		Admin_Edit_Gallery::register_publish_hook();
+		Admin_Edit_Gallery::register_render_hook();
 	}
 
 	/**

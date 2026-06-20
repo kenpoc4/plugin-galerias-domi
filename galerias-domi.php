@@ -132,6 +132,7 @@ final class Galerias_Domi {
 	 */
 	public function init(): void {
 		( new \GaleriasDomi\Post_Types\Gallery_Post_Type() )->register();
+		( new \GaleriasDomi\Frontend\Gallery_Shortcode() )->register();
 	}
 
 }

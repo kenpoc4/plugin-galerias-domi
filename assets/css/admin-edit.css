@@ -1224,6 +1224,221 @@ body.toplevel_page_galerias-domi {
 	outline-offset: 2px;
 }
 
+/* ─── Variant picker (estilo del filtro) ─────────────── */
+
+.gd-variant-picker {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 6px;
+}
+
+.gd-variant-option {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+}
+
+.gd-variant-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+.gd-variant-option__preview {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 132px;
+	padding: 10px 12px;
+	background: var(--gd-bg);
+	border: 2px solid var(--gd-border);
+	border-radius: 8px;
+	transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.gd-variant-option__label {
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--gd-muted);
+	transition: color .15s ease;
+}
+
+.gd-variant-option:hover .gd-variant-option__preview {
+	border-color: var(--gd-primary);
+}
+
+.gd-variant-option input[type="radio"]:checked ~ .gd-variant-option__preview {
+	border-color: var(--gd-primary);
+	box-shadow: 0 0 0 3px rgba(30, 215, 96, .2);
+}
+
+.gd-variant-option input[type="radio"]:checked ~ .gd-variant-option__label {
+	color: var(--gd-primary-dark);
+	font-weight: 600;
+}
+
+.gd-variant-option input[type="radio"]:focus-visible ~ .gd-variant-option__preview {
+	outline: 2px solid var(--gd-contrast);
+	outline-offset: 2px;
+}
+
+/* Chips de previsualización dentro de cada opción. */
+.gd-variant-chip {
+	font-size: 11px;
+	line-height: 1;
+	padding: 5px 10px;
+	border: 1px solid var(--gd-border);
+	border-radius: 999px;
+	background: #fff;
+	color: var(--gd-muted);
+}
+
+/* Sólido: activo relleno. */
+.gd-variant-preview--solid .gd-variant-chip.is-active {
+	background: var(--gd-primary);
+	border-color: var(--gd-primary);
+	color: #fff;
+}
+
+/* Contorno: activo con borde y texto de color, sin relleno. */
+.gd-variant-preview--outline .gd-variant-chip.is-active {
+	background: #fff;
+	border-color: var(--gd-primary);
+	color: var(--gd-primary-dark);
+}
+
+/* Minimal: sin caja; activo subrayado. */
+.gd-variant-preview--minimal .gd-variant-chip {
+	border-color: transparent;
+	background: transparent;
+	border-radius: 0;
+	padding: 5px 4px;
+}
+.gd-variant-preview--minimal .gd-variant-chip.is-active {
+	color: var(--gd-primary-dark);
+	font-weight: 700;
+	box-shadow: inset 0 -2px 0 var(--gd-primary);
+}
+
+/* Previsualización tipo "selector" (desplegable) dentro del picker. */
+.gd-variant-select-mock {
+	display: inline-flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-width: 92px;
+	font-size: 11px;
+	color: var(--gd-muted);
+	background: #fff;
+}
+
+.gd-variant-select-mock__arrow {
+	font-size: 9px;
+	line-height: 1;
+	opacity: .7;
+}
+
+/* Sólido: caja con borde y fondo (el desplegable clásico). */
+.gd-variant-preview--solid .gd-variant-select-mock {
+	padding: 6px 10px;
+	border: 1px solid var(--gd-border);
+	border-radius: 6px;
+}
+
+/* Minimal: sin caja, solo línea inferior. */
+.gd-variant-preview--minimal .gd-variant-select-mock {
+	padding: 6px 2px;
+	background: transparent;
+	border-bottom: 2px solid var(--gd-border);
+	border-radius: 0;
+}
+
+/* ─── Width picker (espacios) ────────────────────────── */
+
+.gd-width-picker {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 6px;
+}
+
+.gd-width-option {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+}
+
+.gd-width-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+.gd-width-option__bar {
+	display: flex;
+	align-items: center;
+	width: 84px;
+	height: 30px;
+	padding: 4px;
+	background: var(--gd-bg);
+	border: 2px solid var(--gd-border);
+	border-radius: 6px;
+	transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.gd-width-option__fill {
+	display: block;
+	height: 100%;
+	margin: 0 auto;
+	background: var(--gd-border);
+	border-radius: 3px;
+	transition: background .15s ease;
+}
+
+.gd-width-option__label {
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--gd-muted);
+	transition: color .15s ease;
+}
+
+.gd-width-option:hover .gd-width-option__bar {
+	border-color: var(--gd-primary);
+}
+
+.gd-width-option:hover .gd-width-option__fill {
+	background: var(--gd-primary);
+}
+
+.gd-width-option input[type="radio"]:checked ~ .gd-width-option__bar {
+	border-color: var(--gd-primary);
+	box-shadow: 0 0 0 3px rgba(30, 215, 96, .2);
+}
+
+.gd-width-option input[type="radio"]:checked ~ .gd-width-option__bar .gd-width-option__fill {
+	background: var(--gd-primary);
+}
+
+.gd-width-option input[type="radio"]:checked ~ .gd-width-option__label {
+	color: var(--gd-primary-dark);
+	font-weight: 600;
+}
+
+.gd-width-option input[type="radio"]:focus-visible ~ .gd-width-option__bar {
+	outline: 2px solid var(--gd-contrast);
+	outline-offset: 2px;
+}
+
 /* ─── Barra de guardado global ───────────────────────── */
 
 .gd-save-bar {
@@ -1234,12 +1449,69 @@ body.toplevel_page_galerias-domi {
 	z-index: 9999;
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: space-between;
+	gap: 16px;
 	padding: 14px 24px;
 	background: rgba(255, 255, 255, .94);
 	backdrop-filter: blur(8px);
 	border-top: 1px solid var(--gd-border);
 	box-shadow: 0 -4px 16px rgba(0, 0, 0, .08);
+}
+
+.gd-save-bar__meta {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.gd-version-info {
+	font-size: 11px;
+	color: var(--gd-muted);
+	letter-spacing: .01em;
+}
+
+.gd-save-bar__actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-left: auto;
+}
+
+/* ─── Botón Renderizar ───────────────────────────────── */
+
+.gd-btn-render {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 32px;
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 600;
+	color: #fff;
+	background: var(--gd-contrast);
+	border: 1px solid var(--gd-contrast);
+	border-radius: var(--gd-radius);
+	cursor: pointer;
+	transition: background .15s ease, box-shadow .15s ease, transform .1s ease;
+	letter-spacing: .02em;
+}
+
+.gd-btn-render:hover:not(:disabled) {
+	background: var(--gd-contrast-dark);
+	box-shadow: 0 2px 8px rgba(65, 0, 244, .35);
+}
+
+.gd-btn-render:active:not(:disabled) {
+	transform: translateY(1px);
+	box-shadow: none;
+}
+
+.gd-btn-render:disabled {
+	color: #9ca3af;
+	background: #f3f4f6;
+	border-color: #e5e7eb;
+	cursor: not-allowed;
 }
 
 /* Evitar que el contenido quede oculto detrás de la barra fija */

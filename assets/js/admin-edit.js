@@ -202,9 +202,63 @@
 	const filtersToggle          = document.getElementById( 'gd-filters-enabled' );
 	const filterStyleField       = document.getElementById( 'gd-filter-style-field' );
 	const filterStyleSelect      = document.getElementById( 'gd-filter-style' );
+	const variantButtonsField    = document.getElementById( 'gd-filter-variant-buttons-field' );
+	const variantSelectField     = document.getElementById( 'gd-filter-variant-select-field' );
+	const filterShapeField       = document.getElementById( 'gd-filter-shape-field' );
+	const filterShapeSelect      = document.getElementById( 'gd-filter-shape' );
 	const filtersAvailableField  = document.getElementById( 'gd-filters-available-field' );
 
 	if ( filtersToggle && filterStyleField && filterStyleSelect ) {
+
+		// Tipo de filtro activo ('buttons' | 'select').
+		function currentType() {
+			return filterStyleSelect.value;
+		}
+
+		// Variante seleccionada en el picker de botones.
+		function buttonsVariant() {
+			const checked = document.querySelector( 'input[name="gd_filter_variant_buttons"]:checked' );
+			return checked ? checked.value : 'solid';
+		}
+
+		// Habilita/inhabilita los radios de un picker de variante.
+		function setVariantField( field, enabled ) {
+			if ( ! field ) {
+				return;
+			}
+			field.classList.toggle( 'is-disabled', ! enabled );
+			field.setAttribute( 'aria-disabled', enabled ? 'false' : 'true' );
+			field.querySelectorAll( 'input[type="radio"]' ).forEach( function ( radio ) {
+				radio.setAttribute( 'tabindex', enabled ? '' : '-1' );
+			} );
+		}
+
+		// Muestra el picker del tipo activo y oculta el otro; coloca la "Forma".
+		function syncTypeUI() {
+			const enabled = filtersToggle.checked;
+			const type    = currentType();
+
+			if ( variantButtonsField ) {
+				variantButtonsField.classList.toggle( 'gd-hidden', 'buttons' !== type );
+				setVariantField( variantButtonsField, enabled && 'buttons' === type );
+			}
+			if ( variantSelectField ) {
+				variantSelectField.classList.toggle( 'gd-hidden', 'select' !== type );
+				setVariantField( variantSelectField, enabled && 'select' === type );
+			}
+
+			// La forma solo existe para botones; deshabilitada si la variante es minimal.
+			if ( filterShapeField ) {
+				const shapeHidden   = 'buttons' !== type;
+				const shapeDisabled = ! enabled || shapeHidden || 'minimal' === buttonsVariant();
+				filterShapeField.classList.toggle( 'gd-hidden', shapeHidden );
+				filterShapeField.classList.toggle( 'is-disabled', shapeDisabled );
+				filterShapeField.setAttribute( 'aria-disabled', shapeDisabled ? 'true' : 'false' );
+				if ( filterShapeSelect ) {
+					filterShapeSelect.setAttribute( 'tabindex', shapeDisabled ? '-1' : '' );
+				}
+			}
+		}
 
 		function syncFilterStyle() {
 			const enabled = filtersToggle.checked;
@@ -218,6 +272,8 @@
 				filtersAvailableField.setAttribute( 'aria-disabled', enabled ? 'false' : 'true' );
 			}
 
+			syncTypeUI();
+
 			// Mostrar/ocultar la columna de filtro en cada fila de imagen.
 			document.querySelectorAll( '.gd-image-row__filter' ).forEach( function ( col ) {
 				col.classList.toggle( 'gd-hidden', ! enabled );
@@ -225,6 +281,14 @@
 		}
 
 		filtersToggle.addEventListener( 'change', syncFilterStyle );
+
+		// Al cambiar de tipo, se muestra el picker correspondiente y la forma.
+		filterStyleSelect.addEventListener( 'change', syncTypeUI );
+
+		// La forma se recalcula al cambiar la variante de botones.
+		document.querySelectorAll( 'input[name="gd_filter_variant_buttons"]' ).forEach( function ( radio ) {
+			radio.addEventListener( 'change', syncTypeUI );
+		} );
 
 		// Estado inicial al cargar la página.
 		syncFilterStyle();

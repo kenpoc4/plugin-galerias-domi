@@ -26,6 +26,8 @@ class Admin_Edit_Gallery {
 	const NONCE          = 'galerias_domi_save_gallery_nonce';
 	const PUBLISH_ACTION = 'galerias_domi_publish_gallery';
 	const PUBLISH_NONCE  = 'galerias_domi_publish_gallery_nonce';
+	const RENDER_ACTION  = 'galerias_domi_render_gallery';
+	const RENDER_NONCE   = 'galerias_domi_render_gallery_nonce';
 
 	/**
 	 * Post de la galería que se está editando.
@@ -62,6 +64,160 @@ class Admin_Edit_Gallery {
 				$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
 				( new self( $id ) )->handle_publish();
 			}
+		);
+	}
+
+	/**
+	 * Registra el hook de renderizado vía admin-post.php.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function register_render_hook(): void {
+		add_action(
+			'admin_post_' . self::RENDER_ACTION,
+			function () {
+				$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
+				( new self( $id ) )->handle_render();
+			}
+		);
+	}
+
+	/**
+	 * Renderiza la galería: congela la configuración guardada en un snapshot
+	 * y avanza la versión de render a la versión de guardado actual.
+	 *
+	 * El frontend (shortcode) solo refleja los cambios tras este paso.
+	 *
+	 * @since 1.0.0
+	 */
+	public function handle_render(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'No tienes permiso para hacer esto.', 'galerias-domi' ) );
+		}
+
+		check_admin_referer( self::RENDER_NONCE );
+
+		if ( null === $this->gallery ) {
+			wp_die( esc_html__( 'Galería no encontrada.', 'galerias-domi' ) );
+		}
+
+		$id = $this->gallery->ID;
+
+		// Solo se puede renderizar una galería publicada y con cambios guardados.
+		$is_published   = (bool) get_post_meta( $id, '_gd_published', true );
+		$save_version   = absint( get_post_meta( $id, '_gd_save_version', true ) );
+		$render_version = absint( get_post_meta( $id, '_gd_render_version', true ) );
+
+		if ( ! $is_published || $save_version <= $render_version ) {
+			wp_die( esc_html__( 'La galería no está lista para renderizarse.', 'galerias-domi' ) );
+		}
+
+		// Congelar la configuración guardada actual como snapshot de render.
+		$snapshot = $this->build_config_snapshot( $id );
+		update_post_meta( $id, '_gd_rendered_data', $snapshot );
+
+		// La versión de render se iguala a la de guardado: la galería queda al día.
+		update_post_meta( $id, '_gd_render_version', $save_version );
+		update_post_meta( $id, '_gd_rendered_at', time() );
+
+		// Invalidar la caché del frontend de la versión anterior.
+		delete_transient( 'gd_gallery_html_' . $id . '_' . $render_version );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'     => Admin_Menu::MENU_SLUG,
+					'action'   => 'edit',
+					'id'       => $id,
+					'rendered' => '1',
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Construye el snapshot de configuración a partir de los post metas guardados.
+	 *
+	 * Este array es lo que el shortcode usa para renderizar el frontend; se guarda
+	 * en el momento del render para que el sitio público solo cambie al renderizar.
+	 *
+	 * @since 1.0.0
+	 * @param int $id ID de la galería.
+	 * @return array<string, mixed>
+	 */
+	private function build_config_snapshot( int $id ): array {
+		$columns = absint( get_post_meta( $id, '_gd_columns', true ) );
+		$columns = $columns >= 1 && $columns <= 8 ? $columns : 3;
+
+		$hover_effect = (string) get_post_meta( $id, '_gd_hover_effect', true );
+		$hover_effect = $hover_effect ?: 'shadow';
+
+		$filter_style = (string) get_post_meta( $id, '_gd_filter_style', true );
+		$filter_style = $filter_style ?: 'buttons';
+
+		// Variante efectiva: la del tipo seleccionado (cada tipo guarda la suya).
+		$filter_variant = $this->get_saved_variant( $id, $filter_style );
+
+		$filter_shape = (string) get_post_meta( $id, '_gd_filter_shape', true );
+		$filter_shape = in_array( $filter_shape, self::FILTER_SHAPES, true ) ? $filter_shape : self::FILTER_SHAPE_DEFAULT;
+
+		$saved_filters = get_post_meta( $id, '_gd_filters', true );
+		$filters       = array();
+		if ( is_array( $saved_filters ) ) {
+			foreach ( $saved_filters as $f ) {
+				$fname = sanitize_text_field( $f['name'] ?? '' );
+				$fid   = sanitize_key( $f['id'] ?? '' );
+				if ( '' !== $fname && '' !== $fid ) {
+					$filters[] = array(
+						'name' => $fname,
+						'id'   => $fid,
+					);
+				}
+			}
+		}
+
+		$saved_images = get_post_meta( $id, '_gd_images', true );
+		$images       = array();
+		if ( is_array( $saved_images ) ) {
+			foreach ( $saved_images as $item ) {
+				if ( is_numeric( $item ) ) {
+					$images[] = array(
+						'id'     => (int) $item,
+						'filter' => 'todos',
+					);
+				} elseif ( is_array( $item ) && ! empty( $item['id'] ) ) {
+					$images[] = array(
+						'id'     => absint( $item['id'] ),
+						'filter' => sanitize_key( $item['filter'] ?? 'todos' ),
+					);
+				}
+			}
+		}
+
+		$pagination_rows = absint( get_post_meta( $id, '_gd_pagination_rows', true ) );
+		$pagination_rows = in_array( $pagination_rows, array( 3, 6, 9, 12 ), true ) ? $pagination_rows : 6;
+
+		$raw_show_todos = get_post_meta( $id, '_gd_show_todos', true );
+
+		$width = absint( get_post_meta( $id, '_gd_width', true ) );
+		$width = in_array( $width, self::WIDTH_VALUES, true ) ? $width : self::WIDTH_DEFAULT;
+
+		return array(
+			'columns'            => $columns,
+			'width'              => $width,
+			'hover_effect'       => $hover_effect,
+			'filters_enabled'    => (bool) get_post_meta( $id, '_gd_filters_enabled', true ),
+			'filter_style'       => $filter_style,
+			'filter_variant'     => $filter_variant,
+			'filter_shape'       => $filter_shape,
+			'show_todos'         => '' !== $raw_show_todos ? (bool) $raw_show_todos : true,
+			'todos_position'     => min( absint( get_post_meta( $id, '_gd_todos_position', true ) ), count( $filters ) ),
+			'filters'            => $filters,
+			'pagination_enabled' => (bool) get_post_meta( $id, '_gd_pagination_enabled', true ),
+			'pagination_rows'    => $pagination_rows,
+			'images'             => $images,
 		);
 	}
 
@@ -139,6 +295,26 @@ class Admin_Edit_Gallery {
 		}
 		update_post_meta( $id, '_gd_filter_style', $filter_style );
 
+		// Variante de estilo del filtro (una por tipo; cada una conserva su valor).
+		$variant_buttons = sanitize_key( wp_unslash( $_POST['gd_filter_variant_buttons'] ?? '' ) );
+		if ( ! in_array( $variant_buttons, self::FILTER_VARIANTS_BUTTONS, true ) ) {
+			$variant_buttons = self::FILTER_VARIANT_DEFAULT;
+		}
+		update_post_meta( $id, '_gd_filter_variant_buttons', $variant_buttons );
+
+		$variant_select = sanitize_key( wp_unslash( $_POST['gd_filter_variant_select'] ?? '' ) );
+		if ( ! in_array( $variant_select, self::FILTER_VARIANTS_SELECT, true ) ) {
+			$variant_select = self::FILTER_VARIANT_DEFAULT;
+		}
+		update_post_meta( $id, '_gd_filter_variant_select', $variant_select );
+
+		// Forma del filtro (redondo / cuadrado).
+		$filter_shape = sanitize_key( wp_unslash( $_POST['gd_filter_shape'] ?? '' ) );
+		if ( ! in_array( $filter_shape, self::FILTER_SHAPES, true ) ) {
+			$filter_shape = self::FILTER_SHAPE_DEFAULT;
+		}
+		update_post_meta( $id, '_gd_filter_shape', $filter_shape );
+
 		// Mostrar filtro "Todos".
 		update_post_meta( $id, '_gd_show_todos', isset( $_POST['gd_show_todos'] ) ? 1 : 0 );
 
@@ -193,6 +369,20 @@ class Admin_Edit_Gallery {
 		}
 		update_post_meta( $id, '_gd_pagination_rows', $pagination_rows );
 
+		// Ancho de la galería (porcentaje del ancho disponible).
+		$width = absint( $_POST['gd_width'] ?? self::WIDTH_DEFAULT ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		if ( ! in_array( $width, self::WIDTH_VALUES, true ) ) {
+			$width = self::WIDTH_DEFAULT;
+		}
+		update_post_meta( $id, '_gd_width', $width );
+
+		// Avanzar la versión de guardado y registrar la fecha.
+		// Esta versión es la que se compara contra la de render para habilitar
+		// el botón "Renderizar".
+		$save_version = absint( get_post_meta( $id, '_gd_save_version', true ) ) + 1;
+		update_post_meta( $id, '_gd_save_version', $save_version );
+		update_post_meta( $id, '_gd_saved_at', time() );
+
 		wp_safe_redirect(
 			add_query_arg(
 				array(
@@ -240,8 +430,104 @@ class Admin_Edit_Gallery {
 				'label'    => __( 'Filtros', 'galerias-domi' ),
 				'callback' => array( $this, 'render_tab_filters' ),
 			),
+			array(
+				'id'       => 'espacios',
+				'label'    => __( 'Espacios', 'galerias-domi' ),
+				'callback' => array( $this, 'render_tab_espacios' ),
+			),
 		);
 	}
+
+	/**
+	 * Valores de ancho permitidos (porcentaje del ancho disponible).
+	 *
+	 * @since 1.0.0
+	 * @var int[]
+	 */
+	private const WIDTH_VALUES = array( 100, 95, 80, 65, 50 );
+
+	/**
+	 * Ancho por defecto cuando no hay valor guardado.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
+	private const WIDTH_DEFAULT = 100;
+
+	/**
+	 * Variantes de estilo disponibles para el tipo "botones".
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
+	private const FILTER_VARIANTS_BUTTONS = array( 'solid', 'outline', 'minimal' );
+
+	/**
+	 * Variantes de estilo disponibles para el tipo "selector".
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
+	private const FILTER_VARIANTS_SELECT = array( 'solid', 'minimal' );
+
+	/**
+	 * Variante de estilo por defecto.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	private const FILTER_VARIANT_DEFAULT = 'solid';
+
+	/**
+	 * Devuelve las variantes de estilo permitidas para un tipo de filtro.
+	 *
+	 * @since 1.0.0
+	 * @param string $style 'buttons' | 'select'.
+	 * @return string[]
+	 */
+	private function variants_for_style( string $style ): array {
+		return 'select' === $style ? self::FILTER_VARIANTS_SELECT : self::FILTER_VARIANTS_BUTTONS;
+	}
+
+	/**
+	 * Lee la variante de estilo guardada para un tipo concreto.
+	 *
+	 * Cada tipo recuerda su propia elección en su meta. Si no hay valor (galería
+	 * anterior a esta separación) cae al meta unificado `_gd_filter_variant`.
+	 *
+	 * @since 1.0.0
+	 * @param int    $id    ID de la galería.
+	 * @param string $style 'buttons' | 'select'.
+	 * @return string
+	 */
+	private function get_saved_variant( int $id, string $style ): string {
+		$meta_key = 'select' === $style ? '_gd_filter_variant_select' : '_gd_filter_variant_buttons';
+		$value    = (string) get_post_meta( $id, $meta_key, true );
+
+		if ( '' === $value ) {
+			// Compatibilidad con el meta unificado anterior.
+			$value = (string) get_post_meta( $id, '_gd_filter_variant', true );
+		}
+
+		$allowed = $this->variants_for_style( $style );
+		return in_array( $value, $allowed, true ) ? $value : self::FILTER_VARIANT_DEFAULT;
+	}
+
+	/**
+	 * Formas permitidas para los filtros (no aplica a la variante "minimal").
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
+	private const FILTER_SHAPES = array( 'rounded', 'square' );
+
+	/**
+	 * Forma por defecto.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	private const FILTER_SHAPE_DEFAULT = 'rounded';
 
 	/* =========================================================
 	 * CONTENIDO DE TABS
@@ -266,6 +552,10 @@ class Admin_Edit_Gallery {
 	private function render_tab_filters(): void {
 		$filters_enabled = (bool) get_post_meta( $this->gallery->ID, '_gd_filters_enabled', true );
 		$filter_style    = get_post_meta( $this->gallery->ID, '_gd_filter_style', true ) ?: 'buttons';
+		$variant_buttons = $this->get_saved_variant( $this->gallery->ID, 'buttons' );
+		$variant_select  = $this->get_saved_variant( $this->gallery->ID, 'select' );
+		$filter_shape    = get_post_meta( $this->gallery->ID, '_gd_filter_shape', true );
+		$filter_shape    = in_array( $filter_shape, self::FILTER_SHAPES, true ) ? $filter_shape : self::FILTER_SHAPE_DEFAULT;
 		?>
 
 		<!-- Activar filtros -->
@@ -301,7 +591,7 @@ class Admin_Edit_Gallery {
 			aria-disabled="<?php echo ! $filters_enabled ? 'true' : 'false'; ?>">
 
 			<span class="gd-field__label">
-				<?php esc_html_e( 'Estilo del filtro', 'galerias-domi' ); ?>
+				<?php esc_html_e( 'Tipo de Filtro', 'galerias-domi' ); ?>
 			</span>
 
 			<div class="gd-select-wrap">
@@ -322,8 +612,172 @@ class Admin_Edit_Gallery {
 
 		</div>
 
+		<!-- Estilo del filtro (un picker por tipo; se muestra el del tipo activo) -->
+		<?php
+		$this->render_variant_picker( 'buttons', $variant_buttons, $filters_enabled, 'buttons' !== $filter_style );
+		$this->render_variant_picker( 'select', $variant_select, $filters_enabled, 'select' !== $filter_style );
+
+		// La forma solo aplica al tipo "botones" y no a la variante "minimal".
+		$shape_hidden   = 'buttons' !== $filter_style;
+		$shape_disabled = ! $filters_enabled || 'minimal' === $variant_buttons;
+		?>
+		<!-- Forma del filtro (solo tipo botones; requiere filtros activos y variante ≠ minimal) -->
+		<div class="gd-field <?php echo $shape_disabled ? 'is-disabled' : ''; ?><?php echo $shape_hidden ? ' gd-hidden' : ''; ?>"
+			id="gd-filter-shape-field"
+			aria-disabled="<?php echo $shape_disabled ? 'true' : 'false'; ?>">
+
+			<span class="gd-field__label">
+				<?php esc_html_e( 'Forma', 'galerias-domi' ); ?>
+			</span>
+
+			<div class="gd-select-wrap">
+				<select
+					id="gd-filter-shape"
+					name="gd_filter_shape"
+					<?php echo $shape_disabled ? 'tabindex="-1"' : ''; ?>>
+					<option value="rounded" <?php selected( $filter_shape, 'rounded' ); ?>>
+						<?php esc_html_e( 'Redondo', 'galerias-domi' ); ?>
+					</option>
+					<option value="square" <?php selected( $filter_shape, 'square' ); ?>>
+						<?php esc_html_e( 'Cuadrado', 'galerias-domi' ); ?>
+					</option>
+				</select>
+			</div>
+
+		</div>
+
 		<?php
 		$this->render_field_filters_list();
+	}
+
+	/**
+	 * Renderiza el picker de "Estilo del filtro" para un tipo concreto.
+	 *
+	 * Cada tipo (botones/selector) tiene su propio set de variantes y su propio
+	 * campo en el formulario, por lo que cada uno conserva su elección de forma
+	 * independiente. El picker que no corresponde al tipo activo se oculta.
+	 *
+	 * @since 1.0.0
+	 * @param string $style           'buttons' | 'select'.
+	 * @param string $current         Variante actualmente seleccionada.
+	 * @param bool   $filters_enabled Si los filtros están activos.
+	 * @param bool   $hidden          Si este picker debe ocultarse (tipo no activo).
+	 */
+	private function render_variant_picker( string $style, string $current, bool $filters_enabled, bool $hidden ): void {
+		$labels = array(
+			'solid'   => __( 'Sólido', 'galerias-domi' ),
+			'outline' => __( 'Contorno', 'galerias-domi' ),
+			'minimal' => __( 'Minimal', 'galerias-domi' ),
+		);
+
+		$classes = 'gd-field';
+		if ( ! $filters_enabled ) {
+			$classes .= ' is-disabled';
+		}
+		if ( $hidden ) {
+			$classes .= ' gd-hidden';
+		}
+		$no_tab = ! $filters_enabled || $hidden;
+		?>
+		<div class="<?php echo esc_attr( $classes ); ?>"
+			id="gd-filter-variant-<?php echo esc_attr( $style ); ?>-field"
+			data-variant-field="<?php echo esc_attr( $style ); ?>"
+			aria-disabled="<?php echo ! $filters_enabled ? 'true' : 'false'; ?>">
+
+			<span class="gd-field__label">
+				<?php esc_html_e( 'Estilo del filtro', 'galerias-domi' ); ?>
+			</span>
+
+			<div class="gd-variant-picker"
+				role="radiogroup"
+				aria-label="<?php esc_attr_e( 'Estilo del filtro', 'galerias-domi' ); ?>">
+
+				<?php foreach ( $this->variants_for_style( $style ) as $value ) : ?>
+				<label class="gd-variant-option"
+					for="gd-variant-<?php echo esc_attr( $style ); ?>-<?php echo esc_attr( $value ); ?>">
+					<input
+						type="radio"
+						id="gd-variant-<?php echo esc_attr( $style ); ?>-<?php echo esc_attr( $value ); ?>"
+						name="gd_filter_variant_<?php echo esc_attr( $style ); ?>"
+						value="<?php echo esc_attr( $value ); ?>"
+						<?php checked( $value, $current ); ?>
+						<?php echo $no_tab ? 'tabindex="-1"' : ''; ?>>
+					<span class="gd-variant-option__preview gd-variant-preview--<?php echo esc_attr( $value ); ?>">
+						<?php if ( 'select' === $style ) : ?>
+							<span class="gd-variant-select-mock">
+								<span class="gd-variant-select-mock__text"><?php esc_html_e( 'Todos', 'galerias-domi' ); ?></span>
+								<span class="gd-variant-select-mock__arrow" aria-hidden="true">&#9662;</span>
+							</span>
+						<?php else : ?>
+							<span class="gd-variant-chip is-active"><?php esc_html_e( 'Todos', 'galerias-domi' ); ?></span>
+							<span class="gd-variant-chip"><?php esc_html_e( 'Paisaje', 'galerias-domi' ); ?></span>
+						<?php endif; ?>
+					</span>
+					<span class="gd-variant-option__label">
+						<?php echo esc_html( $labels[ $value ] ); ?>
+					</span>
+				</label>
+				<?php endforeach; ?>
+
+			</div>
+
+		</div>
+		<?php
+	}
+
+	/**
+	 * Renderiza el contenido del tab "Espacios".
+	 *
+	 * @since 1.0.0
+	 */
+	private function render_tab_espacios(): void {
+		$this->render_field_width();
+	}
+
+	/**
+	 * Renderiza el selector de ancho de la galería.
+	 *
+	 * @since 1.0.0
+	 */
+	private function render_field_width(): void {
+		$current = absint( get_post_meta( $this->gallery->ID, '_gd_width', true ) );
+		$current = in_array( $current, self::WIDTH_VALUES, true ) ? $current : self::WIDTH_DEFAULT;
+		?>
+		<div class="gd-field">
+
+			<span class="gd-field__label">
+				<?php esc_html_e( 'Ancho de la galería', 'galerias-domi' ); ?>
+			</span>
+			<span class="gd-field__desc">
+				<?php esc_html_e( 'Porcentaje del ancho disponible que ocupa la galería. Se centra automáticamente.', 'galerias-domi' ); ?>
+			</span>
+
+			<div class="gd-width-picker"
+				role="radiogroup"
+				aria-label="<?php esc_attr_e( 'Ancho de la galería', 'galerias-domi' ); ?>">
+
+				<?php foreach ( self::WIDTH_VALUES as $val ) : ?>
+				<label class="gd-width-option"
+					for="gd-width-<?php echo esc_attr( $val ); ?>">
+					<input
+						type="radio"
+						id="gd-width-<?php echo esc_attr( $val ); ?>"
+						name="gd_width"
+						value="<?php echo esc_attr( $val ); ?>"
+						<?php checked( $val, $current ); ?>>
+					<span class="gd-width-option__bar">
+						<span class="gd-width-option__fill" style="width: <?php echo esc_attr( $val ); ?>%;"></span>
+					</span>
+					<span class="gd-width-option__label">
+						<?php echo esc_html( $val ); ?>%
+					</span>
+				</label>
+				<?php endforeach; ?>
+
+			</div>
+
+		</div>
+		<?php
 	}
 
 	/**
@@ -882,6 +1336,17 @@ class Admin_Edit_Gallery {
 		$tabs         = $this->get_tabs();
 		$is_new       = '' === get_post_meta( $this->gallery->ID, '_gd_columns', true );
 		$is_published = (bool) get_post_meta( $this->gallery->ID, '_gd_published', true );
+
+		// Versiones y fechas para la lógica del botón "Renderizar".
+		$save_version   = absint( get_post_meta( $this->gallery->ID, '_gd_save_version', true ) );
+		$render_version = absint( get_post_meta( $this->gallery->ID, '_gd_render_version', true ) );
+		$saved_at       = absint( get_post_meta( $this->gallery->ID, '_gd_saved_at', true ) );
+		$rendered_at    = absint( get_post_meta( $this->gallery->ID, '_gd_rendered_at', true ) );
+
+		// Render habilitado solo si está publicada y la versión guardada es
+		// mayor que la renderizada (hay cambios pendientes de renderizar).
+		$can_render  = $is_published && $save_version > $render_version;
+		$date_format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
 		?>
 		<div class="wrap">
 
@@ -915,6 +1380,12 @@ class Admin_Edit_Gallery {
 			<?php if ( isset( $_GET['published'] ) && '1' === $_GET['published'] ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
 				<div class="notice notice-success is-dismissible">
 					<p><?php esc_html_e( '¡Galería publicada! El shortcode ya está disponible.', 'galerias-domi' ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( isset( $_GET['rendered'] ) && '1' === $_GET['rendered'] ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
+				<div class="notice notice-success is-dismissible">
+					<p><?php esc_html_e( '¡Galería renderizada! El frontend ya refleja la última versión guardada.', 'galerias-domi' ); ?></p>
 				</div>
 			<?php endif; ?>
 
@@ -977,11 +1448,62 @@ class Admin_Edit_Gallery {
 				</div><!-- .gd-edit-layout -->
 
 				<div class="gd-save-bar">
-					<button type="submit" class="gd-btn-save">
-						<?php esc_html_e( 'Guardar galería', 'galerias-domi' ); ?>
-					</button>
+
+					<div class="gd-save-bar__meta">
+						<?php if ( $saved_at ) : ?>
+							<span class="gd-version-info">
+								<?php
+								printf(
+									/* translators: %s: fecha del último guardado */
+									esc_html__( 'Último guardado: %s', 'galerias-domi' ),
+									esc_html( wp_date( $date_format, $saved_at ) )
+								);
+								?>
+							</span>
+						<?php endif; ?>
+						<?php if ( $rendered_at ) : ?>
+							<span class="gd-version-info">
+								<?php
+								printf(
+									/* translators: %s: fecha del último renderizado */
+									esc_html__( 'Último render: %s', 'galerias-domi' ),
+									esc_html( wp_date( $date_format, $rendered_at ) )
+								);
+								?>
+							</span>
+						<?php endif; ?>
+					</div>
+
+					<div class="gd-save-bar__actions">
+						<button type="submit" class="gd-btn-save">
+							<?php esc_html_e( 'Guardar galería', 'galerias-domi' ); ?>
+						</button>
+
+						<button
+							type="submit"
+							form="gd-render-form"
+							class="gd-btn-render"
+							<?php disabled( $can_render, false ); ?>
+							<?php if ( ! $can_render ) : ?>
+								title="<?php echo esc_attr(
+									$is_published
+										? __( 'No hay cambios nuevos que renderizar.', 'galerias-domi' )
+										: __( 'Publica y guarda la galería antes de renderizar.', 'galerias-domi' )
+								); ?>"
+							<?php endif; ?>>
+							<?php esc_html_e( 'Renderizar', 'galerias-domi' ); ?>
+						</button>
+					</div>
+
 				</div>
 
+			</form>
+
+			<!-- Formulario aislado del botón "Renderizar" (no envía la edición). -->
+			<form id="gd-render-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( self::RENDER_NONCE ); ?>
+				<input type="hidden" name="action" value="<?php echo esc_attr( self::RENDER_ACTION ); ?>">
+				<input type="hidden" name="id" value="<?php echo esc_attr( $this->gallery->ID ); ?>">
 			</form>
 
 		</div><!-- .wrap -->

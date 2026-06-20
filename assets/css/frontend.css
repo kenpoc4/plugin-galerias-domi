@@ -1,0 +1,427 @@
+/* Galerias DOMI — Frontend */
+
+.gd-gallery {
+	--gd-cols: 3;
+	--gd-gap: 14px;
+	--gd-width: 100%;
+	max-width: var(--gd-width);
+	margin: 0 auto 1.5em;
+}
+
+/* ── Filtros ──────────────────────────────────────────────────────── */
+
+.gd-gallery__filters {
+	margin-bottom: var(--gd-gap);
+}
+
+.gd-gallery__filters--buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.gd-gallery__filter-btn {
+	appearance: none;
+	border: 1px solid #d1d5db;
+	background: #fff;
+	color: #374151;
+	padding: 7px 16px;
+	border-radius: 999px;
+	font: inherit;
+	font-size: 0.9em;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.gd-gallery__filter-btn:hover {
+	border-color: #6366f1;
+	color: #4f46e5;
+}
+
+.gd-gallery__filter-btn.is-active {
+	background: #4f46e5;
+	border-color: #4f46e5;
+	color: #fff;
+}
+
+.gd-gallery__filters--select .gd-gallery__filter-select {
+	font: inherit;
+	padding: 8px 12px;
+	border: 1px solid #d1d5db;
+	border-radius: 8px;
+	background: #fff;
+	min-width: 200px;
+}
+
+/* ── Variantes de estilo del filtro ───────────────────────────────── */
+/* "solid" es el estilo base definido arriba (relleno en el activo). */
+
+/* Variante: Contorno (botones) — activo con borde y texto de color, sin relleno. */
+.gd-gallery__filters--outline .gd-gallery__filter-btn.is-active {
+	background: #fff;
+	border-color: #4f46e5;
+	color: #4f46e5;
+}
+
+/* Variante: Contorno (select) — borde de color. */
+.gd-gallery__filters--outline .gd-gallery__filter-select {
+	border-color: #4f46e5;
+	color: #4f46e5;
+}
+
+/* Variante: Minimal (botones) — sin bordes, solo texto; activo subrayado. */
+.gd-gallery__filters--minimal .gd-gallery__filter-btn {
+	border-color: transparent;
+	background: transparent;
+	border-radius: 0;
+	padding: 7px 8px;
+}
+.gd-gallery__filters--minimal .gd-gallery__filter-btn:hover {
+	border-color: transparent;
+	color: #4f46e5;
+}
+.gd-gallery__filters--minimal .gd-gallery__filter-btn.is-active {
+	background: transparent;
+	color: #4f46e5;
+	font-weight: 700;
+	box-shadow: inset 0 -2px 0 #4f46e5;
+}
+
+/* Variante: Minimal (select) — sin caja, solo línea inferior. */
+.gd-gallery__filters--minimal .gd-gallery__filter-select {
+	border: none;
+	border-bottom: 2px solid #d1d5db;
+	border-radius: 0;
+	padding-left: 2px;
+	background: transparent;
+}
+.gd-gallery__filters--minimal .gd-gallery__filter-select:focus {
+	border-bottom-color: #4f46e5;
+	outline: none;
+}
+
+/* Forma cuadrada: solo botones (la forma no aplica al selector) y no a "minimal". */
+.gd-gallery__filters--shape-square:not(.gd-gallery__filters--minimal) .gd-gallery__filter-btn {
+	border-radius: 4px;
+}
+
+/* ── Grid ─────────────────────────────────────────────────────────── */
+
+.gd-gallery__grid {
+	display: grid;
+	grid-template-columns: repeat(var(--gd-cols), 1fr);
+	gap: var(--gd-gap);
+}
+
+.gd-gallery__item {
+	position: relative;
+	margin: 0;
+	overflow: hidden;
+	border-radius: 10px;
+	aspect-ratio: 4 / 3;
+	background: #f3f4f6;
+}
+
+.gd-gallery__img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	transition: transform 0.35s ease, box-shadow 0.3s ease, filter 0.3s ease;
+}
+
+/* ── Efectos hover ────────────────────────────────────────────────── */
+
+/* Sombra */
+.gd-gallery--hover-shadow .gd-gallery__item:hover {
+	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+}
+
+/* Borde */
+.gd-gallery--hover-border .gd-gallery__item {
+	outline: 0 solid #4f46e5;
+	outline-offset: -3px;
+	transition: outline-width 0.18s ease;
+}
+.gd-gallery--hover-border .gd-gallery__item:hover {
+	outline-width: 4px;
+}
+
+/* Zoom in */
+.gd-gallery--hover-zoom-in .gd-gallery__item:hover .gd-gallery__img {
+	transform: scale(1.09);
+}
+
+/* Zoom out */
+.gd-gallery--hover-zoom-out .gd-gallery__img {
+	transform: scale(1.09);
+}
+.gd-gallery--hover-zoom-out .gd-gallery__item:hover .gd-gallery__img {
+	transform: scale(1);
+}
+
+/* Blur + overlay con texto */
+.gd-gallery__overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px;
+	text-align: center;
+	color: #fff;
+	font-weight: 600;
+	background: rgba(17, 24, 39, 0.45);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+.gd-gallery--hover-blur .gd-gallery__item:hover .gd-gallery__img {
+	filter: blur(4px);
+}
+.gd-gallery--hover-blur .gd-gallery__item:hover .gd-gallery__overlay {
+	opacity: 1;
+}
+
+/* ── Estado oculto (filtro / paginación) ──────────────────────────── */
+
+.gd-gallery__item.gd-is-hidden {
+	display: none;
+}
+
+/* ── Paginación ───────────────────────────────────────────────────── */
+
+.gd-gallery__pagination {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 6px;
+	margin-top: calc(var(--gd-gap) + 6px);
+}
+
+.gd-gallery__pagination:empty {
+	display: none;
+}
+
+.gd-page-btn {
+	appearance: none;
+	border: 1px solid #d1d5db;
+	background: #fff;
+	color: #374151;
+	min-width: 38px;
+	padding: 7px 12px;
+	border-radius: 8px;
+	font: inherit;
+	font-size: 0.9em;
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.gd-page-btn:hover:not(:disabled) {
+	border-color: #6366f1;
+	color: #4f46e5;
+}
+
+.gd-page-btn.is-active {
+	background: #4f46e5;
+	border-color: #4f46e5;
+	color: #fff;
+	cursor: default;
+}
+
+.gd-page-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+
+@media (max-width: 782px) {
+	.gd-gallery__grid {
+		grid-template-columns: repeat(min(var(--gd-cols), 3), 1fr);
+	}
+}
+
+@media (max-width: 600px) {
+	.gd-gallery__grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 400px) {
+	.gd-gallery__grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ── Disparador del lightbox (imagen clicable) ────────────────────── */
+
+.gd-gallery__open {
+	display: block;
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: zoom-in;
+}
+
+.gd-gallery__open:focus-visible {
+	outline: 3px solid #4f46e5;
+	outline-offset: -3px;
+}
+
+/* El overlay de "blur" no debe interceptar el clic hacia el disparador. */
+.gd-gallery__overlay {
+	pointer-events: none;
+}
+
+/* ── Lightbox ─────────────────────────────────────────────────────── */
+
+.gd-no-scroll {
+	overflow: hidden !important;
+}
+
+.gd-lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	background: rgba(17, 24, 39, 0.92);
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.gd-lightbox.is-open {
+	opacity: 1;
+	visibility: visible;
+}
+
+.gd-lightbox__figure {
+	margin: 0;
+	max-width: min(1100px, 100%);
+	max-height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+}
+
+.gd-lightbox__img {
+	max-width: 100%;
+	max-height: 82vh;
+	width: auto;
+	height: auto;
+	object-fit: contain;
+	border-radius: 6px;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+	background: #1f2937;
+	transition: opacity 0.2s ease;
+}
+
+.gd-lightbox.is-loading .gd-lightbox__img {
+	opacity: 0.35;
+}
+
+.gd-lightbox__caption {
+	margin: 0;
+	max-width: 70ch;
+	text-align: center;
+	color: #f3f4f6;
+	font-size: 0.95em;
+	line-height: 1.5;
+}
+
+.gd-lightbox__btn {
+	position: absolute;
+	appearance: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 46px;
+	height: 46px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.14);
+	color: #fff;
+	font-size: 26px;
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+.gd-lightbox__btn:hover {
+	background: rgba(255, 255, 255, 0.28);
+}
+
+.gd-lightbox__btn:focus-visible {
+	outline: 2px solid #fff;
+	outline-offset: 2px;
+}
+
+.gd-lightbox__btn[hidden] {
+	display: none;
+}
+
+.gd-lightbox__close {
+	top: 16px;
+	right: 16px;
+	font-size: 20px;
+}
+
+.gd-lightbox__nav--prev {
+	left: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.gd-lightbox__nav--next {
+	right: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.gd-lightbox__counter {
+	position: absolute;
+	top: 22px;
+	left: 20px;
+	color: rgba(255, 255, 255, 0.8);
+	font-size: 0.85em;
+	letter-spacing: 0.02em;
+}
+
+.gd-lightbox__counter[hidden] {
+	display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.gd-lightbox,
+	.gd-lightbox__img {
+		transition: none;
+	}
+}
+
+@media (max-width: 600px) {
+	.gd-lightbox {
+		padding: 12px;
+	}
+	.gd-lightbox__btn {
+		width: 40px;
+		height: 40px;
+		font-size: 22px;
+	}
+	.gd-lightbox__nav--prev {
+		left: 6px;
+	}
+	.gd-lightbox__nav--next {
+		right: 6px;
+	}
+}
