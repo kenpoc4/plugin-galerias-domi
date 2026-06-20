@@ -8,6 +8,8 @@
 
 namespace GaleriasDomi\Admin;
 
+use GaleriasDomi\Post_Types\Gallery_Post_Type;
+
 // Prevenir acceso directo.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -404,8 +406,13 @@ class Admin_Edit_Gallery {
 	 * @param int $id ID de la galería.
 	 */
 	public function __construct( int $id ) {
-		$post          = get_post( $id );
-		$this->gallery = ( $post instanceof \WP_Post ) ? $post : null;
+		$post = get_post( $id );
+
+		// Validar también el tipo: evita leer/escribir metas `_gd_*` sobre un
+		// post arbitrario (página, entrada u otro CPT) con un `id` manipulado.
+		$this->gallery = ( $post instanceof \WP_Post && Gallery_Post_Type::POST_TYPE === $post->post_type )
+			? $post
+			: null;
 	}
 
 	/* =========================================================

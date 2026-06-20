@@ -151,13 +151,15 @@ function galerias_domi(): Galerias_Domi {
 galerias_domi();
 
 /**
- * Acciones de activación, desactivación y desinstalación.
+ * Acciones de activación.
  */
 register_activation_hook( __FILE__, 'galerias_domi_activate' );
-register_deactivation_hook( __FILE__, 'galerias_domi_deactivate' );
 
 /**
  * Se ejecuta al activar el plugin.
+ *
+ * El CPT se registra con `rewrite=false`, por lo que no hace falta limpiar
+ * las reglas de reescritura de URLs.
  *
  * @since 1.0.0
  */
@@ -166,16 +168,4 @@ function galerias_domi_activate(): void {
 	if ( ! get_option( 'galerias_domi_version' ) ) {
 		add_option( 'galerias_domi_version', GALERIAS_DOMI_VERSION );
 	}
-
-	// Limpiar las reglas de reescritura de URLs.
-	flush_rewrite_rules();
-}
-
-/**
- * Se ejecuta al desactivar el plugin.
- *
- * @since 1.0.0
- */
-function galerias_domi_deactivate(): void {
-	flush_rewrite_rules();
 }

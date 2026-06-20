@@ -83,7 +83,11 @@ class Galleries_List_Table extends \WP_List_Table {
 		$current_page = $this->get_pagenum();
 
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'date'; // phpcs:ignore WordPress.Security.NonceVerification
-		$order   = isset( $_GET['order'] ) && 'asc' === $_GET['order'] ? 'ASC' : 'DESC'; // phpcs:ignore WordPress.Security.NonceVerification
+		// Solo se permiten las columnas ordenables declaradas.
+		if ( ! in_array( $orderby, array( 'title', 'date' ), true ) ) {
+			$orderby = 'date';
+		}
+		$order = isset( $_GET['order'] ) && 'asc' === $_GET['order'] ? 'ASC' : 'DESC'; // phpcs:ignore WordPress.Security.NonceVerification
 
 		$query = new \WP_Query(
 			array(

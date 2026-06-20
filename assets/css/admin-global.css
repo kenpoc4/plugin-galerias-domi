@@ -10,18 +10,18 @@ body.admin_page_galerias-domi-new {
 	/* Títulos y encabezados */
 	h1, h2, h3, h4, h5, h6,
 	.wp-heading-inline {
-		font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	}
 
 	/* Todo el contenido dentro de .wrap */
 	.wrap {
-		font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	}
 
 	/* Botones y controles propios del plugin */
 	.gd-tab-btn,
 	.gd-card__title {
-		font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	}
 }
 

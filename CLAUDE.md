@@ -58,7 +58,13 @@ Cada imagen se envuelve en un `<button class="gd-gallery__open">` con `data-full
 - La pantalla de edición es de dos columnas: opciones en tabs (`get_tabs()` → general / filtros) y panel de imágenes (biblioteca de medios de WP, `wp_enqueue_media`).
 - Los assets se encolan condicionalmente en `Admin_Menu::enqueue_assets()`, filtrando por hook de página y por `?action=edit`.
 
+## Empaquetado y distribución
+
+- El ZIP de release se genera con `git archive` (ver Opción A en el flujo de trabajo); `.gitattributes` marca `CLAUDE.md`, `.gitignore`, `.gitattributes` y `.claude` como `export-ignore` para excluirlos. `readme.txt` **sí** va en el ZIP (lo exige el directorio de WordPress.org; su `Stable tag` debe coincidir con la versión).
+- Sin recursos externos: la tipografía usa un *system font stack* en `admin-global.css` (no se cargan Google Fonts) por privacidad y directrices de .org.
+- `uninstall.php` borra opciones, las galerías (CPT) con sus metas `_gd_*` y los transients `gd_gallery_html_*`; es multisite-aware.
+
 ## Gotchas conocidos
 
-- Los handlers de `Admin_Edit_Gallery` y `Admin_Page::render()` validan que el post exista pero **no** que su `post_type` sea `galerias-domi`; con un `id` arbitrario podrían leerse/escribirse metas sobre otro post (solo `manage_options`). Validar el `post_type` es una mejora pendiente.
+- El constructor de `Admin_Edit_Gallery` valida que el post exista **y** que su `post_type` sea `Gallery_Post_Type::POST_TYPE`; como todos los handlers (`handle_save/publish/render`) y el dispatch de `Admin_Page::render()` pasan por ese constructor, queda cubierto en un solo punto.
 - El registro del CPT y del shortcode se engancha a `init` desde dentro del propio callback de `init` (en `galerias_domi()->init()`), patrón frágil aunque funcional.

@@ -72,17 +72,12 @@ class Admin_Menu {
 		}
 
 		// ── Assets globales: todas las páginas del plugin ──────────────
-		wp_enqueue_style(
-			'gd-poppins',
-			'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap',
-			array(),
-			null // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-		);
-
+		// Se usa un "system font stack" (sin fuentes remotas) por privacidad
+		// y para cumplir las directrices del directorio de WordPress.org.
 		wp_enqueue_style(
 			'gd-admin-global',
 			GALERIAS_DOMI_PLUGIN_URL . 'assets/css/admin-global.css',
-			array( 'gd-poppins' ),
+			array(),
 			GALERIAS_DOMI_VERSION
 		);
 
