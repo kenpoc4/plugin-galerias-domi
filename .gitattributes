@@ -1,0 +1,8 @@
+# Normalización de saltos de línea
+* text=auto eol=lf
+
+# Excluidos del ZIP de distribución (solo desarrollo)
+/.gitattributes export-ignore
+/.gitignore     export-ignore
+/.claude        export-ignore
+/CLAUDE.md      export-ignore
